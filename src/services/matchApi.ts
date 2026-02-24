@@ -1,5 +1,5 @@
-import { apiSlice } from './api';
 import { Match, Sport } from '../models';
+import { apiSlice } from './api';
 
 interface MatchListArgs {
   limit: number;
@@ -7,6 +7,7 @@ interface MatchListArgs {
   timezone: string;
   tournament_ids?: string;
   status?: string;
+  todate?: string;
 }
 
 interface MatchListResponse {
@@ -16,41 +17,62 @@ interface MatchListResponse {
 
 export const matchApi = apiSlice.injectEndpoints({
   endpoints: builder => ({
-    // Infinite Scroll Endpoint
-    getMatches: builder.query<Match[], MatchListArgs>({
+    getMatches: builder.query<{ matches: Match[]; total: number }, MatchListArgs>({
       query: params => ({
         url: '/sports/matchList',
         params: {
           ...params,
-          status: 'all', // Default status
+          status: params.status || 'all',
         },
       }),
-      // Transformation: Extract the matches array from the response
-      transformResponse: (response: MatchListResponse) => {
-        return response.matches || [];
+      transformResponse: (response: any) => {
+        const matches = (response.matches || []).map((m: any) => ({
+          id: m.id,
+          startTime: m.start_time,
+          team1: {
+            name: m.homeTeam?.name || 'TBA',
+            logo: m.homeTeam?.logo,
+          },
+          team2: {
+            name: m.awayTeam?.name || 'TBA',
+            logo: m.awayTeam?.logo,
+          },
+          tournamentName: m.tournament?.name || 'Unknown',
+          sportName: m.sport?.sportName || 'Sports',
+          status: m.status,
+        }));
+        return {
+          matches,
+          total: response.total || 0,
+        };
       },
-      // Cache handling for infinite scroll:
-      // 1. Merge new results into existing cache
-      merge: (currentCache, newItems, { arg }) => {
-        if (arg.offset === 0) {
-          // If offset is 0, it's a refresh or new filter, replace cache
-          return newItems;
-        }
-        // Otherwise, append new items
-        currentCache.push(...newItems);
-      },
-      // 2. Ensure we only keep one cache entry per filter set (ignoring offset/limit)
+      // Merge for infinite scroll
       serializeQueryArgs: ({ queryArgs }) => {
         const { limit, offset, ...rest } = queryArgs;
         return JSON.stringify(rest);
       },
-      // Always refetch on mount or arg change to ensure fresh data
+      merge: (currentCache, newResponse, { arg }) => {
+        if (arg.offset === 0) {
+          return newResponse;
+        }
+        // Filter out duplicates based on id
+        const existingIds = new Set(currentCache.matches.map(m => m.id));
+        const filteredNewItems = newResponse.matches.filter(m => !existingIds.has(m.id));
+        return {
+          ...currentCache,
+          matches: [...currentCache.matches, ...filteredNewItems],
+          total: newResponse.total,
+        };
+      },
       forceRefetch({ currentArg, previousArg }) {
         return currentArg !== previousArg;
       },
+      providesTags: (result) =>
+        result?.matches
+          ? [...result.matches.map(({ id }) => ({ type: 'Match' as const, id })), { type: 'Match', id: 'LIST' }]
+          : [{ type: 'Match', id: 'LIST' }],
     }),
 
-    // Filters Endpoint
     getAllSportsAndLeagues: builder.query<Sport[], void>({
       query: () => ({
         url: '/sports/AllSportsAndLeagues',
@@ -58,10 +80,8 @@ export const matchApi = apiSlice.injectEndpoints({
           limit: 100,
         },
       }),
-      transformResponse: (response: Sport[]) => response,
     }),
   }),
 });
 
-// Export hooks for usage in functional components
 export const { useGetMatchesQuery, useGetAllSportsAndLeaguesQuery } = matchApi;

@@ -7,6 +7,7 @@ interface CountdownTimerProps {
 
 const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetDate }) => {
   const [timeLeft, setTimeLeft] = useState('');
+  const [isStarted, setIsStarted] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
@@ -16,7 +17,8 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetDate }) => {
       const difference = target - now;
 
       if (difference <= 0) {
-        setTimeLeft('Started');
+        setTimeLeft('LIVE');
+        setIsStarted(true);
         if (intervalRef.current) clearInterval(intervalRef.current);
         return;
       }
@@ -28,10 +30,17 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetDate }) => {
       const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((difference % (1000 * 60)) / 1000);
 
-      setTimeLeft(`${days}d ${hours}h ${minutes}m ${seconds}s`);
+      let timeString = '';
+      if (days > 0) timeString += `${days}d `;
+      timeString += `${hours.toString().padStart(2, '0')}h ${minutes
+        .toString()
+        .padStart(2, '0')}m ${seconds.toString().padStart(2, '0')}s`;
+      
+      setTimeLeft(timeString);
+      setIsStarted(false);
     };
 
-    calculateTime(); // Initial call
+    calculateTime();
     intervalRef.current = setInterval(calculateTime, 1000);
 
     return () => {
@@ -41,22 +50,27 @@ const CountdownTimer: React.FC<CountdownTimerProps> = ({ targetDate }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.timerText}>{timeLeft}</Text>
+      <Text style={[styles.timerText, isStarted && styles.startedText]}>
+        {isStarted ? timeLeft : timeLeft}
+      </Text>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#f0f0f0',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
+    paddingVertical: 2,
+    alignItems: 'center',
   },
   timerText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#333',
+    fontSize: 10,
+    fontWeight: '500',
+    color: '#999',
+    letterSpacing: 0.2,
+  },
+  startedText: {
+    color: '#319795',
+    fontWeight: '700',
   },
 });
 

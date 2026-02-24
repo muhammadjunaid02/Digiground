@@ -1,93 +1,193 @@
-/* eslint-disable react/no-unstable-nested-components */
-/* eslint-disable react-native/no-inline-styles */
-import React, { useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  RefreshControl,
   SafeAreaView,
+  ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import DatePicker from '../components/DatePicker';
 import FilterModal from '../components/FilterModal';
 import MatchCard from '../components/MatchCard';
-import { useMatchList } from '../hooks/useMatchList';
 import { Match } from '../models';
+import { useGetAllSportsAndLeaguesQuery, useGetMatchesQuery } from '../services/matchApi';
+
+const PAGE_SIZE = 20;
 
 const MatchListScreen = () => {
-  const {
-    matches,
-    loading,
-    error,
-    filters,
-    loadMore,
-    applyFilters,
-    selectedTournamentIds,
-  } = useMatchList();
-
+  const [offset, setOffset] = useState(0);
+  const [selectedTournamentIds, setSelectedTournamentIds] = useState<number[]>([]);
   const [isFilterVisible, setFilterVisible] = useState(false);
+  
+  // New state for Date filtering
+  const today = useMemo(() => new Date().toISOString().split('T')[0], []);
+  const [selectedDate, setSelectedDate] = useState(today);
+
+  // Timezone for the API
+  const timezone = useMemo(() => Intl.DateTimeFormat().resolvedOptions().timeZone || 'Australia/Sydney', []);
+
+  // Fetch matches with RTK Query
+  const {
+    data,
+    isLoading,
+    isFetching,
+    isError,
+    refetch,
+  } = useGetMatchesQuery({
+    limit: PAGE_SIZE,
+    offset,
+    timezone,
+    todate: selectedDate,
+    tournament_ids: selectedTournamentIds.length > 0 ? selectedTournamentIds.join(',') : undefined,
+  });
+
+  const matches = data?.matches || [];
+  const totalCount = data?.total || 0;
+
+  // Fetch filters (for names in chips and modal)
+  const { data: sports = [] } = useGetAllSportsAndLeaguesQuery();
+
+  // Extract selected names for chips
+  const selectedTournaments = useMemo(() => {
+    const list: string[] = [];
+    sports.forEach(sport => {
+      sport.tournaments.forEach(t => {
+        if (selectedTournamentIds.includes(t.id)) {
+          list.push(t.name);
+        }
+      });
+    });
+    return list;
+  }, [sports, selectedTournamentIds]);
+
+  const handleLoadMore = useCallback(() => {
+    // Correct infinite scroll condition: if we haven't fetched all matches yet
+    if (!isFetching && matches.length < totalCount) {
+      setOffset(prev => prev + PAGE_SIZE);
+    }
+  }, [isFetching, matches.length, totalCount]);
+
+  const handleRefresh = useCallback(() => {
+    setOffset(0);
+    // Force a refetch if we are already at offset 0
+    if (offset === 0) refetch();
+  }, [refetch, offset]);
+
+  const handleApplyFilters = useCallback((ids: number[]) => {
+    setSelectedTournamentIds(ids);
+    setOffset(0);
+  }, []);
+
+  const handleDateSelect = useCallback((date: string) => {
+    setSelectedDate(date);
+    setOffset(0);
+  }, []);
+
+  const removeFilter = (name: string) => {
+    const idToRemove = sports.flatMap(s => s.tournaments).find(t => t.name === name)?.id;
+    if (idToRemove) {
+      setSelectedTournamentIds(prev => prev.filter(id => id !== idToRemove));
+      setOffset(0);
+    }
+  };
 
   const renderItem = ({ item }: { item: Match }) => <MatchCard item={item} />;
 
   const ListFooterComponent = () => {
-    if (loading && matches.length > 0) {
+    if (isFetching && offset > 0) {
       return (
-        <ActivityIndicator
-          style={{ margin: 20 }}
-          size="large"
-          color="#0000ff"
-        />
+        <View style={styles.footerLoader}>
+          <ActivityIndicator size="small" color="#3F51B5" />
+        </View>
       );
     }
-    return null;
+    return <View style={styles.listFooter} />;
   };
 
-  if (error) {
+  if (isError) {
     return (
-      <View style={styles.centerContainer}>
-        <Text>{error}</Text>
-        <TouchableOpacity onPress={() => {}} style={styles.retryBtn}>
-          <Text>Retry</Text>
+      <SafeAreaView style={styles.centerContainer}>
+        <Text style={styles.errorText}>Something went wrong!</Text>
+        <TouchableOpacity onPress={handleRefresh} style={styles.retryBtn}>
+          <Text style={styles.retryBtnText}>Retry</Text>
         </TouchableOpacity>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Match Schedule</Text>
-        <TouchableOpacity
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+      
+      {/* Date Picker Section */}
+      <DatePicker selectedDate={selectedDate} onDateSelect={handleDateSelect} />
+
+      {/* Filter Chips Section */}
+      <View style={styles.filterRow}>
+        <TouchableOpacity 
+          style={styles.filterMenuBtn} 
           onPress={() => setFilterVisible(true)}
-          style={styles.filterBtn}
         >
           <Text style={styles.filterBtnText}>Filters</Text>
+          <View style={styles.filterIconStyle} />
         </TouchableOpacity>
+
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          style={styles.chipsScroll}
+        >
+          <View style={[styles.chip, selectedTournamentIds.length === 0 && styles.activeChip]}>
+            <Text style={[styles.chipText, selectedTournamentIds.length === 0 && styles.activeChipText]}>All</Text>
+            {selectedTournamentIds.length > 0 && (
+              <TouchableOpacity onPress={() => setSelectedTournamentIds([])}>
+                 <Text style={styles.chipClose}>✕</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {selectedTournaments.map(name => (
+            <View key={name} style={[styles.chip, styles.activeChip]}>
+              <Text style={styles.activeChipText} numberOfLines={1}>{name}</Text>
+              <TouchableOpacity onPress={() => removeFilter(name)}>
+                <Text style={styles.chipClose}>✕</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+        </ScrollView>
       </View>
 
-      <FlatList
-        data={matches}
-        keyExtractor={item => item.id.toString()}
-        renderItem={renderItem}
-        onEndReached={loadMore}
-        onEndReachedThreshold={0.5}
-        ListFooterComponent={ListFooterComponent}
-        ListEmptyComponent={
-          loading ? (
-            <ActivityIndicator size="large" />
-          ) : (
-            <Text style={styles.emptyText}>No matches found</Text>
-          )
-        }
-        contentContainerStyle={styles.listContent}
-      />
+      {/* Match List */}
+      {isLoading && offset === 0 ? (
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color="#3F51B5" />
+        </View>
+      ) : (
+        <FlatList
+          data={matches}
+          keyExtractor={item => `match-${item.id}`}
+          renderItem={renderItem}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={ListFooterComponent}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={isFetching && offset === 0} onRefresh={handleRefresh} />
+          }
+        />
+      )}
 
       <FilterModal
         visible={isFilterVisible}
         onClose={() => setFilterVisible(false)}
-        sports={filters}
-        onApply={applyFilters}
+        sports={sports}
+        onApply={handleApplyFilters}
         currentSelection={selectedTournamentIds}
       />
     </SafeAreaView>
@@ -97,50 +197,102 @@ const MatchListScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  header: {
-    padding: 15,
     backgroundColor: '#fff',
+  },
+  filterRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    paddingVertical: 12,
+    borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
+    borderColor: '#eee',
+    backgroundColor: '#fafafa',
   },
-  headerTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  filterBtn: {
-    backgroundColor: '#007bff',
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 20,
+  filterMenuBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    borderRightWidth: 1,
+    borderRightColor: '#ddd',
+    height: 32,
   },
   filterBtnText: {
-    color: '#fff',
+    fontSize: 13,
     fontWeight: '600',
+    color: '#333',
+    marginRight: 6,
+  },
+  filterIconStyle: {
+    width: 14,
+    height: 10,
+    borderTopWidth: 2,
+    borderBottomWidth: 2,
+    borderColor: '#333',
+    justifyContent: 'center',
+  },
+  chipsScroll: {
+    paddingLeft: 10,
+  },
+  chip: {
+    height: 30,
+    paddingHorizontal: 12,
+    borderRadius: 15,
+    backgroundColor: '#eee',
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  activeChip: {
+    backgroundColor: '#3F51B5',
+  },
+  chipText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#666',
+  },
+  activeChipText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#fff',
+    marginRight: 6,
+    maxWidth: 120,
+  },
+  chipClose: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '900',
   },
   listContent: {
-    paddingBottom: 20,
+    paddingBottom: 24,
+  },
+  footerLoader: {
+    paddingVertical: 20,
+    alignItems: 'center',
+  },
+  listFooter: {
+    height: 20,
   },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  errorText: {
+    fontSize: 16,
+    color: '#E53E3E',
+    fontWeight: '600',
+    marginBottom: 16,
   },
   retryBtn: {
-    marginTop: 10,
-    padding: 10,
-    backgroundColor: '#ddd',
-    borderRadius: 5,
+    backgroundColor: '#3F51B5',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
   },
-  emptyText: {
-    textAlign: 'center',
-    marginTop: 50,
-    fontSize: 16,
-    color: '#999',
+  retryBtnText: {
+    color: 'white',
+    fontWeight: '700',
   },
 });
 

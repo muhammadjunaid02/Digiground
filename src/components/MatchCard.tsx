@@ -3,7 +3,7 @@ import { Image, StyleSheet, Text, View } from 'react-native';
 import { Match } from '../models';
 import CountdownTimer from './CountdownTimer';
 
-const MEDIA_BASE_URL = 'https://media.smartb.com.au/';
+const MEDIA_BASE_URL = 'https://media.smartb.com.au/smartb/';
 
 interface MatchCardProps {
   item: Match;
@@ -12,41 +12,60 @@ interface MatchCardProps {
 const MatchCard: React.FC<MatchCardProps> = ({ item }) => {
   return (
     <View style={styles.container}>
-      <View style={styles.headerRow}>
-        <Text style={styles.tournamentText}>{item.tournamentName}</Text>
-        <Text style={styles.sportText}>{item.sportName}</Text>
+      {/* 3-Column Layout */}
+      <View style={styles.teamColumn}>
+        <View style={styles.logoWrapper}>
+          {item.team1?.logo ? (
+            <Image
+              source={{ uri: `${MEDIA_BASE_URL}${item.team1.logo}` }}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          ) : (
+            <View style={styles.placeholderLogo}>
+              <Text style={styles.placeholderText}>{item.team1?.name?.charAt(0) || '?'}</Text>
+            </View>
+          )}
+        </View>
+        <Text style={styles.teamName} numberOfLines={2}>
+          {item.team1?.name || 'TBA'}
+        </Text>
       </View>
 
-      <View style={styles.teamsContainer}>
-        <View style={styles.teamInfo}>
-          <Image
-            source={{ uri: `${MEDIA_BASE_URL}${item.team1.logo}` }}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <Text style={styles.teamName} numberOfLines={2}>
-            {item.team1.name}
-          </Text>
-        </View>
-
-        <View style={styles.vsContainer}>
-          <Text style={styles.vsText}>VS</Text>
-        </View>
-
-        <View style={styles.teamInfo}>
-          <Image
-            source={{ uri: `${MEDIA_BASE_URL}${item.team2.logo}` }}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <Text style={styles.teamName} numberOfLines={2}>
-            {item.team2.name}
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.footer}>
+      <View style={styles.infoColumn}>
+        <Text style={styles.tournamentText} numberOfLines={1}>
+          {item.tournamentName}
+        </Text>
+        <Text style={styles.timeText}>
+          {new Date(item.startTime).toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: true,
+          }).toUpperCase()}
+        </Text>
         <CountdownTimer targetDate={item.startTime} />
+        <View style={styles.tipsBadge}>
+          <Text style={styles.tipsText}>Tips</Text>
+        </View>
+      </View>
+
+      <View style={styles.teamColumn}>
+        <View style={styles.logoWrapper}>
+          {item.team2?.logo ? (
+            <Image
+              source={{ uri: `${MEDIA_BASE_URL}${item.team2.logo}` }}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+          ) : (
+            <View style={styles.placeholderLogo}>
+              <Text style={styles.placeholderText}>{item.team2?.name?.charAt(0) || '?'}</Text>
+            </View>
+          )}
+        </View>
+        <Text style={styles.teamName} numberOfLines={2}>
+          {item.team2?.name || 'TBA'}
+        </Text>
       </View>
     </View>
   );
@@ -54,68 +73,78 @@ const MatchCard: React.FC<MatchCardProps> = ({ item }) => {
 
 const styles = StyleSheet.create({
   container: {
+    flexDirection: 'row',
     backgroundColor: '#fff',
-    marginHorizontal: 10,
-    marginVertical: 6,
-    borderRadius: 10,
-    padding: 15,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-    paddingBottom: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#f0f0f0', // Flat design with dividers instead of cards
   },
-  tournamentText: {
-    fontSize: 12,
-    color: '#555',
-    fontWeight: '600',
-  },
-  sportText: {
-    fontSize: 12,
-    color: '#888',
-    textTransform: 'uppercase',
-  },
-  teamsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  teamColumn: {
+    flex: 1.2,
     alignItems: 'center',
+    justifyContent: 'flex-start',
   },
-  teamInfo: {
+  infoColumn: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  logo: {
-    width: 50,
-    height: 50,
+  logoWrapper: {
+    width: 48,
+    height: 48,
     marginBottom: 8,
-  },
-  teamName: {
-    fontSize: 13,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    color: '#333',
-  },
-  vsContainer: {
-    width: 40,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  vsText: {
-    fontSize: 12,
-    color: '#aaa',
-    fontWeight: 'bold',
+  logo: {
+    width: 40,
+    height: 40,
   },
-  footer: {
-    marginTop: 12,
-    alignItems: 'flex-end',
+  placeholderLogo: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#f5f5f5',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  placeholderText: {
+    fontSize: 16,
+    color: '#999',
+    fontWeight: '700',
+  },
+  teamName: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#333',
+    textAlign: 'center',
+    lineHeight: 16,
+  },
+  tournamentText: {
+    fontSize: 10,
+    color: '#999',
+    fontWeight: '600',
+    marginBottom: 4,
+    textTransform: 'uppercase',
+  },
+  timeText: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#000',
+    marginBottom: 2,
+  },
+  tipsBadge: {
+    marginTop: 6,
+    backgroundColor: '#7986CB', // Soft blue/indigo badge
+    paddingHorizontal: 12,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  tipsText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '700',
   },
 });
 
