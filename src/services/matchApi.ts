@@ -1,7 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { apiSlice } from './api';
 import { Match, Sport } from '../models';
-
-const BASE_URL = 'https://au.testing.smartb.com.au/soc-api';
 
 interface MatchListArgs {
   limit: number;
@@ -16,10 +14,7 @@ interface MatchListResponse {
   totalCount: number;
 }
 
-export const matchApi = createApi({
-  reducerPath: 'matchApi',
-  baseQuery: fetchBaseQuery({ baseUrl: BASE_URL }),
-  tagTypes: ['Matches'],
+export const matchApi = apiSlice.injectEndpoints({
   endpoints: builder => ({
     // Infinite Scroll Endpoint
     getMatches: builder.query<Match[], MatchListArgs>({
