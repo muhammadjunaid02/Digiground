@@ -154,6 +154,8 @@ const styles = StyleSheet.create({
   },
   selectedCircle: {
     backgroundColor: '#3D5AFE', // Vibrant indigo for selection
+    borderRadius: 16,
+
   },
   dayNum: {
     fontSize: 15,
