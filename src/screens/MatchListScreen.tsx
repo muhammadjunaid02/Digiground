@@ -24,7 +24,13 @@ const MatchListScreen = () => {
   const [isFilterVisible, setFilterVisible] = useState(false);
   
   // New state for Date filtering
-  const today = useMemo(() => new Date().toISOString().split('T')[0], []);
+  const today = useMemo(() => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }, []);
   const [selectedDate, setSelectedDate] = useState(today);
 
   // Timezone for the API

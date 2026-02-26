@@ -1,10 +1,11 @@
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import React, { useMemo } from 'react';
 import {
-    ScrollView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 interface DatePickerProps {
@@ -13,6 +14,8 @@ interface DatePickerProps {
 }
 
 const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onDateSelect }) => {
+  const [showPicker, setShowPicker] = React.useState(false);
+
   const dates = useMemo(() => {
     const list = [];
     const today = new Date();
@@ -20,8 +23,11 @@ const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onDateSelect }) =
     for (let i = 0; i < 14; i++) {
       const date = new Date();
       date.setDate(today.getDate() + i);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
       list.push({
-        full: date.toISOString().split('T')[0],
+        full: `${year}-${month}-${day}`,
         dayName: ['Su', 'M', 'Tu', 'W', 'Th', 'F', 'Sa'][date.getDay()],
         dayNum: date.getDate(),
         monthName: date.toLocaleString('default', { month: 'long' }),
@@ -36,12 +42,36 @@ const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onDateSelect }) =
     return `${activeDate.monthName} ${activeDate.year}`;
   }, [selectedDate, dates]);
 
+  const handlePickerChange = (event: DateTimePickerEvent, date?: Date) => {
+    setShowPicker(false);
+    if (date && event.type === 'set') {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const formattedDate = `${year}-${month}-${day}`;
+      onDateSelect(formattedDate);
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <TouchableOpacity 
+        style={styles.header}
+        onPress={() => setShowPicker(true)}
+        activeOpacity={0.7}
+      >
         <Text style={styles.monthText}>{currentMonthYear}</Text>
         <View style={styles.chevron} />
-      </View>
+      </TouchableOpacity>
+
+      {showPicker && (
+        <DateTimePicker
+          value={new Date(selectedDate)}
+          mode="date"
+          display="default"
+          onChange={handlePickerChange}
+        />
+      )}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
