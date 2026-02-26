@@ -15,7 +15,7 @@ Digiground is a high-performance React Native application designed for sports fa
 ## 🛠 Prerequisites
 
 Before you begin, ensure you have the following installed:
-- [Node.js](https://nodejs.org/) (v18 or higher recommended)
+- [Node.js](https://nodejs.org/) (v22.11.0 or higher)
 - [Yarn](https://yarnpkg.com/)
 - [React Native CLI](https://reactnative.dev/docs/environment-setup)
 - [Android Studio](https://developer.android.com/studio) (for Android development)
