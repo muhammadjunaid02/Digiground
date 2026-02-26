@@ -3,7 +3,7 @@ import { Image, StyleSheet, Text, View } from 'react-native';
 import { Match } from '../models';
 import CountdownTimer from './CountdownTimer';
 
-const MEDIA_BASE_URL = 'https://media.smartb.com.au/smartb/';
+const MEDIA_BASE_URL = 'https://media.smartb.com.au/';
 
 interface MatchCardProps {
   item: Match;
@@ -34,7 +34,7 @@ const MatchCard: React.FC<MatchCardProps> = ({ item }) => {
 
       <View style={styles.infoColumn}>
         <Text style={styles.tournamentText} numberOfLines={1}>
-          {item.tournamentName}
+          {item.sportName}
         </Text>
         <Text style={styles.timeText}>
           {new Date(item.startTime).toLocaleTimeString([], {
@@ -75,15 +75,15 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     backgroundColor: '#fff',
-    paddingVertical: 16,
-    paddingHorizontal: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0', // Flat design with dividers instead of cards
+    borderBottomColor: '#f0f0f0',
   },
   teamColumn: {
     flex: 1.2,
     alignItems: 'center',
-    justifyContent: 'flex-start',
+    justifyContent: 'center',
   },
   infoColumn: {
     flex: 1,
@@ -91,59 +91,59 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   logoWrapper: {
-    width: 48,
-    height: 48,
-    marginBottom: 8,
+    width: 44,
+    height: 44,
+    marginBottom: 4,
     justifyContent: 'center',
     alignItems: 'center',
   },
   logo: {
-    width: 40,
-    height: 40,
+    width: 36,
+    height: 36,
   },
   placeholderLogo: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: '#f5f5f5',
     justifyContent: 'center',
     alignItems: 'center',
   },
   placeholderText: {
-    fontSize: 16,
+    fontSize: 14,
     color: '#999',
     fontWeight: '700',
   },
   teamName: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '500',
     color: '#333',
     textAlign: 'center',
-    lineHeight: 16,
+    lineHeight: 14,
   },
   tournamentText: {
-    fontSize: 10,
+    fontSize: 8,
     color: '#999',
-    fontWeight: '600',
-    marginBottom: 4,
+    fontWeight: '700',
+    marginBottom: 2,
     textTransform: 'uppercase',
   },
   timeText: {
-    fontSize: 18,
-    fontWeight: '800',
+    fontSize: 16,
+    fontWeight: '900',
     color: '#000',
-    marginBottom: 2,
+    marginBottom: 0,
   },
   tipsBadge: {
-    marginTop: 6,
-    backgroundColor: '#7986CB', // Soft blue/indigo badge
-    paddingHorizontal: 12,
-    paddingVertical: 2,
+    marginTop: 4,
+    backgroundColor: '#7986CB',
+    paddingHorizontal: 10,
+    paddingVertical: 1,
     borderRadius: 4,
   },
   tipsText: {
     color: '#fff',
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '700',
   },
 });

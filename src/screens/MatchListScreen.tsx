@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   FlatList,
   RefreshControl,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
@@ -11,12 +10,12 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import DatePicker from '../components/DatePicker';
 import FilterModal from '../components/FilterModal';
 import MatchCard from '../components/MatchCard';
 import { Match } from '../models';
 import { useGetAllSportsAndLeaguesQuery, useGetMatchesQuery } from '../services/matchApi';
-
 const PAGE_SIZE = 20;
 
 const MatchListScreen = () => {
@@ -45,7 +44,7 @@ const MatchListScreen = () => {
     todate: selectedDate,
     tournament_ids: selectedTournamentIds.length > 0 ? selectedTournamentIds.join(',') : undefined,
   });
-
+console.log("data",data);
   const matches = data?.matches || [];
   const totalCount = data?.total || 0;
 
@@ -202,64 +201,67 @@ const styles = StyleSheet.create({
   filterRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
+    paddingVertical: 10,
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: '#eee',
-    backgroundColor: '#fafafa',
+    borderColor: '#EFEFEF',
+    backgroundColor: '#FFFFFF',
   },
   filterMenuBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
     borderRightWidth: 1,
-    borderRightColor: '#ddd',
-    height: 32,
+    borderRightColor: '#E0E0E0',
+    height: 28,
   },
   filterBtnText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '600',
     color: '#333',
     marginRight: 6,
   },
   filterIconStyle: {
-    width: 14,
-    height: 10,
+    width: 16,
+    height: 12,
     borderTopWidth: 2,
     borderBottomWidth: 2,
     borderColor: '#333',
     justifyContent: 'center',
   },
   chipsScroll: {
-    paddingLeft: 10,
+    paddingLeft: 4,
   },
   chip: {
-    height: 30,
-    paddingHorizontal: 12,
-    borderRadius: 15,
-    backgroundColor: '#eee',
+    height: 32,
+    paddingHorizontal: 16,
+    borderRadius: 16,
+    backgroundColor: '#F5F5F5',
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 8,
+    marginRight: 10,
+    borderWidth: 1,
+    borderColor: '#EEEEEE',
   },
   activeChip: {
-    backgroundColor: '#3F51B5',
+    backgroundColor: '#3D5AFE',
+    borderColor: '#3D5AFE',
   },
   chipText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
-    color: '#666',
+    color: '#757575',
   },
   activeChipText: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
     color: '#fff',
-    marginRight: 6,
-    maxWidth: 120,
+    marginRight: 8,
+    maxWidth: 150,
   },
   chipClose: {
     color: '#fff',
-    fontSize: 10,
+    fontSize: 12,
     fontWeight: '900',
   },
   listContent: {

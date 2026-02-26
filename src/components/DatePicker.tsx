@@ -123,10 +123,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   selectedCircle: {
-    backgroundColor: '#3F51B5', // Indigo-like blue from screenshot
+    backgroundColor: '#3D5AFE', // Vibrant indigo for selection
   },
   dayNum: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
     color: '#333',
   },

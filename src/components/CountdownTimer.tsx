@@ -64,13 +64,13 @@ const styles = StyleSheet.create({
   },
   timerText: {
     fontSize: 10,
-    fontWeight: '500',
-    color: '#999',
-    letterSpacing: 0.2,
+    fontWeight: '600',
+    color: '#A0A0A0',
+    letterSpacing: 0.1,
   },
   startedText: {
-    color: '#319795',
-    fontWeight: '700',
+    color: '#38A169', // Match the green from the design if LIVE
+    fontWeight: '800',
   },
 });
 
