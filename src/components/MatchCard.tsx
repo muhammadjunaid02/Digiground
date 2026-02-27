@@ -148,4 +148,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MatchCard;
+export default React.memo(MatchCard);

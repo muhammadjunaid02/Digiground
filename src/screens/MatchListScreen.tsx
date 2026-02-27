@@ -50,7 +50,6 @@ const MatchListScreen = () => {
     todate: selectedDate,
     tournament_ids: selectedTournamentIds.length > 0 ? selectedTournamentIds.join(',') : undefined,
   });
-console.log("data",data);
   const matches = data?.matches || [];
   const totalCount = data?.total || 0;
 
@@ -93,17 +92,17 @@ console.log("data",data);
     setOffset(0);
   }, []);
 
-  const removeFilter = (name: string) => {
+  const removeFilter = useCallback((name: string) => {
     const idToRemove = sports.flatMap(s => s.tournaments).find(t => t.name === name)?.id;
     if (idToRemove) {
       setSelectedTournamentIds(prev => prev.filter(id => id !== idToRemove));
       setOffset(0);
     }
-  };
+  }, [sports, setSelectedTournamentIds, setOffset]);
 
-  const renderItem = ({ item }: { item: Match }) => <MatchCard item={item} />;
+  const renderItem = useCallback(({ item }: { item: Match }) => <MatchCard item={item} />, []);
 
-  const ListFooterComponent = () => {
+  const ListFooterComponent = useCallback(() => {
     if (isFetching && offset > 0) {
       return (
         <View style={styles.footerLoader}>
@@ -112,7 +111,7 @@ console.log("data",data);
       );
     }
     return <View style={styles.listFooter} />;
-  };
+  }, [isFetching, offset]);
 
   if (isError) {
     return (
@@ -304,4 +303,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MatchListScreen;
+export default React.memo(MatchListScreen);

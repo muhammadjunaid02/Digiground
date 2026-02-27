@@ -1,13 +1,13 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-    FlatList,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  FlatList,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { Sport, Tournament } from '../models';
 
@@ -29,14 +29,20 @@ const FilterModal: React.FC<FilterModalProps> = ({
   const [selectedIds, setSelectedIds] = useState<number[]>(currentSelection);
   const [expandedSport, setExpandedSport] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  useEffect(() => {
+    if (visible) {
+      setSelectedIds(currentSelection);
+    }
+  }, [visible, currentSelection]);
 
-  const toggleSelection = (id: number) => {
+  const toggleSelection = useCallback((id: number) => {
     setSelectedIds(prev =>
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id],
     );
-  };
+  }, []);
 
-  const toggleSportAll = (sport: Sport) => {
+  const toggleSportAll = useCallback((sport: Sport) => {
     const tournamentIds = sport.tournaments.map(t => t.id);
     const allSelected = tournamentIds.every(id => selectedIds.includes(id));
 
@@ -45,18 +51,18 @@ const FilterModal: React.FC<FilterModalProps> = ({
     } else {
       setSelectedIds(prev => [...new Set([...prev, ...tournamentIds])]);
     }
-  };
+  }, [selectedIds]);
 
-  const isSportFullySelected = (sport: Sport) => {
+  const isSportFullySelected = useCallback((sport: Sport) => {
     return sport.tournaments.every(t => selectedIds.includes(t.id));
-  };
+  }, [selectedIds]);
 
-  const clearAll = () => setSelectedIds([]);
+  const clearAll = useCallback(() => setSelectedIds([]), []);
 
-  const handleApply = () => {
+  const handleApply = useCallback(() => {
     onApply(selectedIds);
     onClose();
-  };
+  }, [onApply, onClose, selectedIds]);
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
@@ -339,4 +345,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default FilterModal;
+export default React.memo(FilterModal);

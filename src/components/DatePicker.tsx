@@ -1,5 +1,5 @@
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -42,7 +42,7 @@ const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onDateSelect }) =
     return `${activeDate.monthName} ${activeDate.year}`;
   }, [selectedDate, dates]);
 
-  const handlePickerChange = (event: DateTimePickerEvent, date?: Date) => {
+  const handlePickerChange = useCallback((event: DateTimePickerEvent, date?: Date) => {
     setShowPicker(false);
     if (date && event.type === 'set') {
       const year = date.getFullYear();
@@ -51,7 +51,7 @@ const DatePicker: React.FC<DatePickerProps> = ({ selectedDate, onDateSelect }) =
       const formattedDate = `${year}-${month}-${day}`;
       onDateSelect(formattedDate);
     }
-  };
+  }, [onDateSelect]);
 
   return (
     <View style={styles.container}>
@@ -167,4 +167,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default DatePicker;
+export default React.memo(DatePicker);
