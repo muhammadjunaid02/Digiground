@@ -74,4 +74,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CountdownTimer;
+export default React.memo(CountdownTimer);

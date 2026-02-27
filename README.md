@@ -68,6 +68,14 @@ cd android
 The generated APK will be located at:
 `android/app/build/outputs/apk/release/app-release.apk`
 
+### Download Pre-built APK
+You can download the latest compiled APK directly from GitHub:
+1. Navigate to the [Actions](https://github.com/muhammadjunaid02/Digiground/actions) tab of this repository.
+2. Select the most recent successful **Android Build APK** run.
+3. Scroll down to the **Artifacts** section.
+4. Download the `app-release-apk` file.
+5. Extract the ZIP file to find the `app-release.apk` and install it on your Android device.
+
 ---
 
 ## 📖 Usage Guide
@@ -98,5 +106,3 @@ The generated APK will be located at:
 
 ---
 
-## 🤝 Support
-For any issues, please open a GitHub issue or contact the development team. 🚀
