@@ -16,7 +16,7 @@ import FilterModal from '../components/FilterModal';
 import MatchCard from '../components/MatchCard';
 import { Match } from '../models';
 import { useGetAllSportsAndLeaguesQuery, useGetMatchesQuery } from '../services/matchApi';
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 20;
 
 const MatchListScreen = () => {
   const [offset, setOffset] = useState(0);
